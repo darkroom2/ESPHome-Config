@@ -29,6 +29,10 @@ wifi:
 captive_portal:
 
 # MOJE RZECZY
+button:
+  - platform: shutdown
+    name: "Kurnik Pokój Sterownik RGBWW Shutdown"
+
 light:
   - platform: rgbww
     name: kurnik_rgbww
@@ -38,8 +42,6 @@ light:
     blue: kurnik_b
     cold_white: kurnik_cw
     warm_white: kurnik_ww
-    cold_white_color_temperature: 5750 K
-    warm_white_color_temperature: 3050 K
   
   - platform: rgbww
     name: pokoj_1_rgbww
@@ -49,8 +51,6 @@ light:
     blue: pokoj_1_b
     cold_white: pokoj_1_cw
     warm_white: pokoj_1_ww
-    cold_white_color_temperature: 5750 K
-    warm_white_color_temperature: 3050 K
   
   - platform: rgbww
     name: pokoj_2_rgbww
@@ -60,8 +60,6 @@ light:
     blue: pokoj_2_b
     cold_white: pokoj_2_cw
     warm_white: pokoj_2_ww
-    cold_white_color_temperature: 5750 K
-    warm_white_color_temperature: 3050 K
 
 output:
   - platform: ledc
@@ -123,3 +121,197 @@ output:
   - platform: ledc
     pin: GPIO17
     id: pokoj_2_ww
+    
+globals:
+  - id: dimming_kurnik
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+  - id: dimming_pokoj_1
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+  - id: dimming_pokoj_2
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+
+binary_sensor:
+  - platform: gpio
+    name: kurnik_rgbww_mode
+    id: kurnik_rgbww_mode
+    pin:
+      number: GPIO16
+      mode:
+        input: true
+        pulldown: true
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+    on_click:
+      then:
+        - if:
+            condition:
+              light.is_off: kurnik_rgbww
+            then:
+              - lambda: |-
+                  id(dimming_kurnik) = true;
+              - light.turn_on:
+                  id: kurnik_rgbww
+                  color_mode: RGB_COLD_WARM_WHITE
+                  brightness: 50% 
+                  color_brightness: 0%
+                  cold_white: 0%
+                  warm_white: 100%
+            else:
+              - light.turn_off: kurnik_rgbww
+    on_press:
+      then:
+        - delay: 0.5s
+        - if:
+            condition: 
+              binary_sensor.is_on: kurnik_rgbww_mode
+            then:
+              - while:
+                  condition:
+                    binary_sensor.is_on: kurnik_rgbww_mode
+                  then:
+                    - if:
+                        condition: 
+                            lambda: |-
+                              return id(dimming_kurnik);
+                        then:
+                                
+                          - light.dim_relative:
+                              id: kurnik_rgbww
+                              relative_brightness: 2%
+                              transition_length: 0.1s
+                          - delay: 0.1s
+                        else:
+                          - light.dim_relative:
+                              id: kurnik_rgbww
+                              relative_brightness: -2%
+                              transition_length: 0.1s
+                          - delay: 0.1s               
+              - lambda: |-
+                  id(dimming_kurnik) = !id(dimming_kurnik);
+
+  - platform: gpio
+    name: pokoj_1_rgbww_mode
+    id: pokoj_1_rgbww_mode
+    pin:
+      number: GPIO4
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+    on_click:
+      then:
+        - if:
+            condition:
+              light.is_off: pokoj_1_rgbww
+            then:
+              - lambda: |-
+                  id(dimming_pokoj_1) = true;
+              - light.turn_on:
+                  id: pokoj_1_rgbww
+                  color_mode: RGB_COLD_WARM_WHITE
+                  brightness: 50% 
+                  color_brightness: 0%
+                  cold_white: 0%
+                  warm_white: 100%
+            else:
+              - light.turn_off: pokoj_1_rgbww
+    on_press:
+      then:
+        - delay: 0.5s
+        - if:
+            condition: 
+              binary_sensor.is_on: pokoj_1_rgbww_mode
+            then:
+              - while:
+                  condition:
+                    binary_sensor.is_on: pokoj_1_rgbww_mode
+                  then:
+                    - if:
+                        condition: 
+                            lambda: |-
+                              return id(dimming_pokoj_1);
+                        then:
+                                
+                          - light.dim_relative:
+                              id: pokoj_1_rgbww
+                              relative_brightness: 2%
+                              transition_length: 0.1s
+                          - delay: 0.1s
+                        else:
+                          - light.dim_relative:
+                              id: pokoj_1_rgbww
+                              relative_brightness: -2%
+                              transition_length: 0.1s
+                          - delay: 0.1s               
+              - lambda: |-
+                  id(dimming_pokoj_1) = !id(dimming_pokoj_1);
+
+  - platform: gpio
+    name: pokoj_2_rgbww_mode
+    id: pokoj_2_rgbww_mode
+    pin:
+      number: GPIO2
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+    on_click:
+      then:
+        - if:
+            condition:
+              light.is_off: pokoj_2_rgbww
+            then:
+              - lambda: |-
+                  id(dimming_pokoj_2) = true;
+              - light.turn_on:
+                  id: pokoj_2_rgbww
+                  color_mode: RGB_COLD_WARM_WHITE
+                  brightness: 50% 
+                  color_brightness: 0%
+                  cold_white: 0%
+                  warm_white: 100%
+            else:
+              - light.turn_off: pokoj_2_rgbww
+    on_press:
+      then:
+        - delay: 0.5s
+        - if:
+            condition: 
+              binary_sensor.is_on: pokoj_2_rgbww_mode
+            then:
+              - while:
+                  condition:
+                    binary_sensor.is_on: pokoj_2_rgbww_mode
+                  then:
+                    - if:
+                        condition: 
+                            lambda: |-
+                              return id(dimming_pokoj_2);
+                        then:
+                                
+                          - light.dim_relative:
+                              id: pokoj_2_rgbww
+                              relative_brightness: 2%
+                              transition_length: 0.1s
+                          - delay: 0.1s
+                        else:
+                          - light.dim_relative:
+                              id: pokoj_2_rgbww
+                              relative_brightness: -2%
+                              transition_length: 0.1s
+                          - delay: 0.1s               
+              - lambda: |-
+                  id(dimming_pokoj_2) = !id(dimming_pokoj_2);
