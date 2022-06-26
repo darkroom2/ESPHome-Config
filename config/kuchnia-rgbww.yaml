@@ -27,6 +27,10 @@ wifi:
 captive_portal:
     
 # MOJE RZECZY
+button:
+  - platform: shutdown
+    name: "Kuchnia Sterownik RGBWW Shutdown"
+
 light:
   - platform: rgbww
     name: kuchnia_rgbww
@@ -36,8 +40,6 @@ light:
     blue: kuchnia_b
     cold_white: kuchnia_cw
     warm_white: kuchnia_ww
-    cold_white_color_temperature: 5750 K
-    warm_white_color_temperature: 3050 K
 
 output:
   - platform: esp8266_pwm
@@ -49,13 +51,80 @@ output:
     id: kuchnia_g
 
   - platform: esp8266_pwm
-    pin: D5
+    pin: D3
     id: kuchnia_b
 
   - platform: esp8266_pwm
-    pin: D6
+    pin: D4
     id: kuchnia_cw
 
   - platform: esp8266_pwm
-    pin: D7
+    pin: D8
     id: kuchnia_ww
+
+globals:
+  - id: dimming
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+
+binary_sensor:
+  - platform: gpio
+    name: kuchnia_rgbww_mode
+    id: kuchnia_rgbww_mode
+    pin:
+      number: D5
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+    on_click:
+      then:
+        - if:
+            condition:
+              light.is_off: kuchnia_rgbww
+            then:
+              - lambda: |-
+                  id(dimming) = true;
+              - light.turn_on:
+                  id: kuchnia_rgbww
+                  color_mode: RGB_COLD_WARM_WHITE
+                  brightness: 50% 
+                  color_brightness: 0%
+                  cold_white: 0%
+                  warm_white: 100%
+            else:
+              - light.turn_off: kuchnia_rgbww
+    on_press:
+      then:
+        - delay: 0.5s
+        - if:
+            condition: 
+              binary_sensor.is_on: kuchnia_rgbww_mode
+            then:
+              - while:
+                  condition:
+                    binary_sensor.is_on: kuchnia_rgbww_mode
+                  then:
+                    - if:
+                        condition: 
+                            lambda: |-
+                              return id(dimming);
+                        then:
+                                
+                          - light.dim_relative:
+                              id: kuchnia_rgbww
+                              relative_brightness: 2%
+                              transition_length: 0.1s
+                          - delay: 0.1s
+                        else:
+                          - light.dim_relative:
+                              id: kuchnia_rgbww
+                              relative_brightness: -2%
+                              transition_length: 0.1s
+                          - delay: 0.1s               
+              - lambda: |-
+                  id(dimming) = !id(dimming);
