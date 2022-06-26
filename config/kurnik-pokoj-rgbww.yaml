@@ -203,8 +203,7 @@ binary_sensor:
       number: GPIO4
       mode:
         input: true
-        pullup: true
-      inverted: true
+        pulldown: true
     filters:
       - delayed_on: 50ms
       - delayed_off: 50ms
@@ -263,8 +262,7 @@ binary_sensor:
       number: GPIO2
       mode:
         input: true
-        pullup: true
-      inverted: true
+        pulldown: true
     filters:
       - delayed_on: 50ms
       - delayed_off: 50ms
