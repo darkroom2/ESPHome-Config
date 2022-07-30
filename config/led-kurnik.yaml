@@ -1,8 +1,8 @@
 esphome:
-  name: kuchnia-rgbww
+  name: led-kurnik
 
 esp8266:
-  board: d1_mini
+  board: esp01_1m
 
 # Enable logging
 logger:
@@ -10,10 +10,10 @@ logger:
 # Enable Home Assistant API
 api:
   encryption:
-    key: "M5iAEVjLPFSHcB9iXbve3cjARvry9n0Adshvgcf4+5Q="
+    key: "BfGt2pHV3rmyPLWdwFMq76LEsJIWu9YIZJxtfOCmeUY="
 
 ota:
-  password: "968f8e65e13b8825755c19de115e3aaa"
+  password: "c8b01bc2597f3ffae659b8034c6a1998"
 
 wifi:
   ssid: !secret wifi_ssid
@@ -21,46 +21,45 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Kuchnia-Rgbww"
-    password: "X6ll52yQaE1q"
+    ssid: "Led-Kurnik Fallback Hotspot"
+    password: "wZ9I8tmAQn9t"
 
 captive_portal:
-    
-# MOJE RZECZY
-button:
-  - platform: shutdown
-    name: "Kuchnia Sterownik RGBWW Shutdown"
 
-light:
-  - platform: rgbww
-    name: kuchnia_rgbww
-    id: kuchnia_rgbww
-    red: kuchnia_r
-    green: kuchnia_g
-    blue: kuchnia_b
-    cold_white: kuchnia_cw
-    warm_white: kuchnia_ww
+
+### MOJE ###
 
 output:
   - platform: esp8266_pwm
-    pin: D1
-    id: kuchnia_r
-
+    pin: GPIO15
+    frequency: 1000 Hz
+    id: pwm_r
   - platform: esp8266_pwm
-    pin: D2
-    id: kuchnia_g
-
+    pin: GPIO13
+    frequency: 1000 Hz
+    id: pwm_g
   - platform: esp8266_pwm
-    pin: D3
-    id: kuchnia_b
-
+    pin: GPIO12
+    frequency: 1000 Hz
+    id: pwm_b
   - platform: esp8266_pwm
-    pin: D4
-    id: kuchnia_cw
-
+    pin: GPIO14
+    frequency: 1000 Hz
+    id: pwm_cw
   - platform: esp8266_pwm
-    pin: D8
-    id: kuchnia_ww
+    pin: GPIO04
+    frequency: 1000 Hz
+    id: pwm_ww
+
+light:
+  - platform: rgbww
+    id: kurnik_rgbww
+    name: "LED Kurnik"
+    red: pwm_r
+    green: pwm_g
+    blue: pwm_b
+    warm_white: pwm_ww
+    cold_white: pwm_cw
 
 globals:
   - id: dimming
@@ -70,10 +69,10 @@ globals:
 
 binary_sensor:
   - platform: gpio
-    name: kuchnia_rgbww_mode
-    id: kuchnia_rgbww_mode
+    name: kurnik_rgbww_mode
+    id: kurnik_rgbww_mode
     pin:
-      number: D5
+      number: GPIO3
       mode:
         input: true
         pullup: true
@@ -85,29 +84,29 @@ binary_sensor:
       then:
         - if:
             condition:
-              light.is_off: kuchnia_rgbww
+              light.is_off: kurnik_rgbww
             then:
               - lambda: |-
                   id(dimming) = true;
               - light.turn_on:
-                  id: kuchnia_rgbww
+                  id: kurnik_rgbww
                   color_mode: RGB_COLD_WARM_WHITE
                   brightness: 50% 
                   color_brightness: 0%
                   cold_white: 0%
                   warm_white: 100%
             else:
-              - light.turn_off: kuchnia_rgbww
+              - light.turn_off: kurnik_rgbww
     on_press:
       then:
         - delay: 0.5s
         - if:
             condition: 
-              binary_sensor.is_on: kuchnia_rgbww_mode
+              binary_sensor.is_on: kurnik_rgbww_mode
             then:
               - while:
                   condition:
-                    binary_sensor.is_on: kuchnia_rgbww_mode
+                    binary_sensor.is_on: kurnik_rgbww_mode
                   then:
                     - if:
                         condition: 
@@ -116,15 +115,17 @@ binary_sensor:
                         then:
                                 
                           - light.dim_relative:
-                              id: kuchnia_rgbww
+                              id: kurnik_rgbww
                               relative_brightness: 2%
                               transition_length: 0.1s
                           - delay: 0.1s
                         else:
                           - light.dim_relative:
-                              id: kuchnia_rgbww
+                              id: kurnik_rgbww
                               relative_brightness: -2%
                               transition_length: 0.1s
                           - delay: 0.1s               
               - lambda: |-
                   id(dimming) = !id(dimming);
+
+### MOJE ###

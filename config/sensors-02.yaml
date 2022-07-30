@@ -1,0 +1,90 @@
+esphome:
+  name: sensors-02
+
+esp32:
+  board: nodemcu-32s
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "5f6y1ymIAdUqRJ4sup1VO8UN0M+kwRH8cMPSW1+ppcM="
+
+ota:
+  password: "14cd731d50ffaa988b4a0506c6e2f39b"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Sensors-02 Fallback Hotspot"
+    password: "T7a22xmLvKSP"
+
+captive_portal:
+
+### MOJE ###
+
+# I2C dla sensora BME280
+i2c:
+
+# Czujniki
+sensor:
+  # Klimat BME280
+  - platform: bme280
+    temperature:
+      name: "BME280 Temperature"
+      oversampling: 16x
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    address: 0x76
+    update_interval: 60s
+
+  # Gaz i dym MQ-2
+  - platform: adc
+    pin: GPIO36
+    name: "MQ-2 Gas Sensor"
+    update_interval: 5s
+    filters:
+      - multiply: 100
+    unit_of_measurement: "%"
+
+  # Gaz i dym MQ-7
+  - platform: adc
+    pin: GPIO39
+    name: "MQ-7 Gas Sensor"
+    update_interval: 5s
+    filters:
+      - multiply: 100
+    unit_of_measurement: "%"
+
+# Kontaktrony
+binary_sensor:
+  # Drzwi
+  - platform: gpio
+    pin:
+      number: GPIO19
+      mode: INPUT_PULLUP
+    name: "Drzwi"
+    id: reed_switch_drzwi
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+  # Okno po stronie pasażera
+  - platform: gpio
+    pin:
+      number: GPIO18
+      mode: INPUT_PULLUP
+    name: "Okno - Pasażer"
+    id: reed_switch_okno_pasazer
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+### MOJE ###
